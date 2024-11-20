@@ -2,26 +2,47 @@ import React, { useEffect, useState } from 'react';
 import './Invoitable.css';
 
 const InvoiceTable = () => {
+  const [searchTerm, setSearchTerm] = useState('');
   const [invoices, setInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [newInvoice, setNewInvoice] = useState({
     employeeId: '',
     purchaseDate: '',
-    customerName:'',
-    phone:'',
-    address:'',
+    customerName: '',
+    phone: '',
+    address: '',
     products: [{ name: '', quantity: '' }],
-   
   });
-  
+
+  const [employees, setEmployees] = useState([]); // List of employees for the dropdown
+  const [products, setProducts] = useState([]); // List of products for the dropdown
+
+  const [error, setError] = useState(''); // Error state for handling errors
 
   useEffect(() => {
-    // Gọi API để lấy tất cả hóa đơn
+    // Fetch all invoices
     fetch('http://localhost:8080/api/invoices')
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch invoices');
+        }
+        return response.json();
+      })
       .then((data) => setInvoices(data))
-      .catch((error) => console.error('Error fetching invoices:', error));
+      .catch((error) => setError(error.message)); // Handle error and set error message
+
+    // Fetch employees for the employee dropdown
+    fetch('http://localhost:8080/api/employees')
+      .then((response) => response.json())
+      .then((data) => setEmployees(data)) // Assuming response contains employee details
+      .catch((error) => setError(error.message));
+
+    // Fetch products for the product dropdown
+    fetch('http://localhost:8080/api/products')
+      .then((response) => response.json())
+      .then((data) => setProducts(data)) // Assuming response contains product details
+      .catch((error) => setError(error.message));
   }, []);
 
   const handleToggleDetails = (invoiceId) => {
@@ -49,39 +70,62 @@ const InvoiceTable = () => {
     const updatedProducts = newInvoice.products.filter((_, i) => i !== index);
     setNewInvoice((prev) => ({ ...prev, products: updatedProducts }));
   };
- 
-  const handleSubmit = () => {
-    
 
+  const handleSubmit = () => {
     fetch('http://localhost:8080/api/invoices', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newInvoice),
     })
       .then((response) => {
-        if (!response.ok) throw new Error('Failed to add invoice');
+        if (!response.ok) {
+          throw new Error('Failed to add invoice');
+        }
         return response.json();
       })
-      .then((data) => {
-        setInvoices((prev) => [...prev, data]);
+      .then((data) => {setInvoices((prev) => [...prev, data]);
         setShowModal(false);
         setNewInvoice({
           employeeId: '',
           purchaseDate: '',
-          customerName:'',
-          phone:'',
-          address:'',
+          customerName: '',
+          phone: '',
+          address: '',
           products: [{ name: '', quantity: '' }],
         });
-        
+        setError(''); // Clear error on success
       })
-      .catch((error) => console.error('Error adding invoice:', error));
+      .catch((error) => setError(error.message)); // Handle error and set error message
   };
+
+  const filteredInvoices = invoices.filter((invoice) =>
+    invoice.customerName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
       <h1>Hóa Đơn</h1>
-      
+
+      {/* Error Message Display */}
+      {error && (
+        <div style={{ color: 'red', marginBottom: '20px' }}>
+          <strong>Error: </strong>{error}
+        </div>
+      )}
+
+      {/* Thanh tìm kiếm */}
+      <div style={{ marginBottom: '20px' }}>
+        <label>
+          <input
+            type="text"
+            style={{ width: '300px', marginLeft: '10px' }}
+            placeholder="Lọc hóa đơn theo tên KH"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </label>
+      </div>
+
       <table>
         <thead>
           <tr>
@@ -97,11 +141,11 @@ const InvoiceTable = () => {
           </tr>
         </thead>
         <tbody>
-          {invoices.map((invoice) => (
+          {filteredInvoices.map((invoice) => (
             <tr key={invoice.invoiceId}>
               <td>{invoice.invoiceId}</td>
               <td>{invoice.employeeName}</td>
-              <td>{invoice.purchaseDate.slice(0, 10)}</td> {/* Cập nhật đây */}
+              <td>{invoice.purchaseDate.slice(0, 10)}</td>
               <td>{invoice.customerName}</td>
               <td>{invoice.phone}</td>
               <td>{invoice.address}</td>
@@ -109,7 +153,9 @@ const InvoiceTable = () => {
               <td>{invoice.purchaseCount}</td>
               <td>
                 <button onClick={() => handleToggleDetails(invoice.invoiceId)}>
-                  {selectedInvoice === invoice.invoiceId ? 'Ẩn chi tiết' : 'Xem chi tiết'}
+                  {selectedInvoice === invoice.invoiceId
+                    ? 'Ẩn chi tiết'
+                    : 'Xem chi tiết'}
                 </button>
               </td>
             </tr>
@@ -134,8 +180,7 @@ const InvoiceTable = () => {
                 .flatMap((invoice) =>
                   invoice.products.map((product, index) => (
                     <tr key={index}>
-                      <td>{product.name}</td>
-                      <td>{product.quantity}</td>
+                      <td>{product.name}</td><td>{product.quantity}</td>
                       <td>{product.price}</td>
                     </tr>
                   ))
@@ -158,20 +203,29 @@ const InvoiceTable = () => {
             <h2>Thêm Hóa Đơn Mới</h2>
             <label>
               ID Nhân Viên:
-              <input
-                type="number"
+              <select
+                style={{ width: '300px' }}
                 value={newInvoice.employeeId}
                 onChange={(e) => handleInputChange('employeeId', e.target.value)}
-              />
+              >
+                <option value="">Chọn Nhân Viên</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               Ngày Mua:
               <input
                 type="date"
+                style={{ width: '300px' }}
                 value={newInvoice.purchaseDate}
                 onChange={(e) => handleInputChange('purchaseDate', e.target.value)}
               />
             </label>
+            <h3>Khách hàng</h3>
             <label>
               Tên Khách Hàng:
               <input
@@ -188,6 +242,7 @@ const InvoiceTable = () => {
                 onChange={(e) => handleInputChange('phone', e.target.value)}
               />
             </label>
+            <p></p>
             <label>
               Địa chỉ:
               <input
@@ -196,38 +251,51 @@ const InvoiceTable = () => {
                 onChange={(e) => handleInputChange('address', e.target.value)}
               />
             </label>
+            <p></p>
             <h3>Sản Phẩm</h3>
             {newInvoice.products.map((product, index) => (
               <div key={index}>
                 <label>
-                  Tên:
-                  <input
-                    type="text"
+                  Tên sản phẩm:
+                  <select
+                    style={{ width: '300px' }}
                     value={product.name}
                     onChange={(e) => handleProductChange(index, 'name', e.target.value)}
-                  />
-                </label>
-                <label>
-                  Số Lượng:
-                  <input
-                    type="number"
-                    value={product.quantity}
-                    onChange={(e) => handleProductChange(index, 'quantity', e.target.value)}
-                  />
-                </label>
-                <button onClick={() => removeProductField(index)}>Xóa</button>
+                  >
+                    <option value="">Chọn sản phẩm</option>
+                    {products.map((prod) => (
+                      <option key={prod.id} value={prod.name}>
+                        {prod.name}
+                      </option>
+                    ))}</select>
+                    </label>
+                    <p></p>
+                    <label>
+                      Số Lượng:
+                      <input
+                        type="number"
+                        style={{ width: '300px' }}
+                        value={product.quantity}
+                        onChange={(e) => handleProductChange(index, 'quantity', e.target.value)}
+                      />
+                    </label>
+                    
+                    <button onClick={() => removeProductField(index)}style={{ width: '300px' }}>Xóa</button>
+                  </div>
+                ))}
+                
+                <button onClick={addProductField}style={{ width: '300px' }}>Thêm Sản Phẩm</button>
+                <br />
+                <div className='modal-actions' style={{ width:'310px'}}>
+                  <button onClick={handleSubmit} style={{ width: '145px' }} className='action-button save'>Lưu</button>
+                  <button onClick={() => setShowModal(false)} style={{ width: '145px' }}>Hủy</button>
+                </div>
               </div>
-            ))}
-            <button onClick={addProductField}>Thêm Sản Phẩm</button>
-            <br />
-            
-            <button onClick={handleSubmit}>Lưu</button>
-            <button onClick={() => setShowModal(false)}>Hủy</button>
-          </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
-  );
-};
-
-export default InvoiceTable;
+      );
+    };
+    
+    export default InvoiceTable;
+    

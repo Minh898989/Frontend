@@ -97,6 +97,7 @@ const HouseholdInventory = () => {
             <th>Tên</th>
             <th>Đơn giá</th>
             <th>Số lượng</th>
+            <th>Ngày Nhập</th>
             <th>Nhãn hàng</th>
             <th>Xuất xứ</th>
             <th>Chất liệu</th>
@@ -110,6 +111,7 @@ const HouseholdInventory = () => {
               <td>{item.name}</td>
               <td>${item.price}</td>
               <td>{item.quantity}</td>
+              <td>{item.importDate.slice(0, 10)}</td>
               <td>{item.brand}</td>
               <td>{item.origin}</td>
               <td>{item.material}</td>
@@ -132,6 +134,9 @@ const HouseholdInventory = () => {
               <input type="text" name="name" value={newItem.name} onChange={handleChange} />
             </label>
             <label>
+            
+            </label>
+            <label>
               Giá:
               <input type="number" name="price" value={newItem.price} onChange={handleChange} />
             </label>
@@ -139,6 +144,11 @@ const HouseholdInventory = () => {
               Số lượng:
               <input type="number" name="quantity" value={newItem.quantity} onChange={handleChange} />
             </label>
+            <label>
+              Ngày Nhập
+              <input type="date" name="importDate" value={newItem.importDate} onChange={handleChange} />
+            </label>
+            
             <label>
               Nhãn hàng:
               <input type="text" name="brand" value={newItem.brand} onChange={handleChange} />

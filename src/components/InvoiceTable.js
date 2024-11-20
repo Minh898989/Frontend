@@ -149,7 +149,7 @@ const InvoiceTable = () => {
               <td>{invoice.customerName}</td>
               <td>{invoice.phone}</td>
               <td>{invoice.address}</td>
-              <td>{invoice.totalAmount}</td>
+              <td>${invoice.totalAmount}</td>
               <td>{invoice.purchaseCount}</td>
               <td>
                 <button onClick={() => handleToggleDetails(invoice.invoiceId)}>
@@ -181,7 +181,7 @@ const InvoiceTable = () => {
                   invoice.products.map((product, index) => (
                     <tr key={index}>
                       <td>{product.name}</td><td>{product.quantity}</td>
-                      <td>{product.price}</td>
+                      <td>${product.price}</td>
                     </tr>
                   ))
                 )}

@@ -112,6 +112,7 @@ const FoodInventory = () => {
             <th>Tên</th>
             <th>Đơn giá</th>
             <th>Số lượng</th>
+            <th>Ngày Nhập</th>
             <th>HSD</th>
             <th>Sửa/Xóa</th>
           </tr>
@@ -123,6 +124,7 @@ const FoodInventory = () => {
               <td>{item.name}</td>
               <td>${item.price}</td>
               <td>{item.quantity}</td>
+              <td>{item.importDate}</td>
               <td style={{ color: isExpired(item.expiryDate) ? 'red' : 'black' }}>
                 {formatDate(item.expiryDate)} 
               </td>
@@ -151,6 +153,10 @@ const FoodInventory = () => {
             <label>
               Số lượng:
               <input type="number" name="quantity" value={newItem.quantity} onChange={handleChange} />
+            </label>
+            <label>
+              Ngày Nhập
+              <input type="date" name="importDate" value={newItem.importDate} onChange={handleChange} />
             </label>
             <label>
               HSD:

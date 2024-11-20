@@ -8,9 +8,13 @@ const InvoiceTable = () => {
   const [newInvoice, setNewInvoice] = useState({
     employeeId: '',
     purchaseDate: '',
+    customerName:'',
+    phone:'',
+    address:'',
     products: [{ name: '', quantity: '' }],
+   
   });
-  const [errorMessage, setErrorMessage] = useState(''); 
+  
 
   useEffect(() => {
     // Gọi API để lấy tất cả hóa đơn
@@ -45,36 +49,9 @@ const InvoiceTable = () => {
     const updatedProducts = newInvoice.products.filter((_, i) => i !== index);
     setNewInvoice((prev) => ({ ...prev, products: updatedProducts }));
   };
-  const validateInvoice = () => {
-    // Kiểm tra thông tin hóa đơn (như số lượng sản phẩm)
-    if (!newInvoice.employeeId || !newInvoice.purchaseDate) {
-      return 'Vui lòng nhập đầy đủ thông tin hóa đơn.';
-    }
-
-    for (const product of newInvoice.products) {
-      if (!product.name || !product.quantity || product.quantity <= 0) {
-        return 'Vui lòng nhập đầy đủ thông tin sản phẩm và số lượng hợp lệ.';
-      }
-    }
-
-    // Kiểm tra số lượng sản phẩm trong kho (giả sử có API kiểm tra kho)
-    // Ví dụ: Kiểm tra nếu số lượng vượt quá tồn kho (giả lập dữ liệu tồn kho)
-    for (const product of newInvoice.products) {
-      const stock = 10; // Giả sử sản phẩm có tồn kho là 10
-      if (parseInt(product.quantity) > stock) {
-        return `Sản phẩm ${product.name} không đủ số lượng trong kho.`;
-      }
-    }
-
-    return ''; // Nếu không có lỗi, trả về chuỗi rỗng
-  };
-
+ 
   const handleSubmit = () => {
-    const error = validateInvoice();  // Kiểm tra lỗi
-    if (error) {
-      setErrorMessage(error);  // Lưu thông báo lỗi
-      return;  // Dừng không gửi dữ liệu nếu có lỗi
-    }
+    
 
     fetch('http://localhost:8080/api/invoices', {
       method: 'POST',
@@ -91,9 +68,12 @@ const InvoiceTable = () => {
         setNewInvoice({
           employeeId: '',
           purchaseDate: '',
+          customerName:'',
+          phone:'',
+          address:'',
           products: [{ name: '', quantity: '' }],
         });
-        setErrorMessage(''); 
+        
       })
       .catch((error) => console.error('Error adding invoice:', error));
   };
@@ -101,13 +81,18 @@ const InvoiceTable = () => {
   return (
     <div>
       <h1>Hóa Đơn</h1>
+      
       <table>
         <thead>
           <tr>
             <th>ID</th>
             <th>Nhân viên</th>
             <th>Ngày mua</th>
+            <th>Tên KH</th>
+            <th>Số ĐT</th>
+            <th>Địa chỉ</th>
             <th>Tổng tiền</th>
+            <th>Số lần mua</th>
             <th>Chi tiết</th>
           </tr>
         </thead>
@@ -117,7 +102,11 @@ const InvoiceTable = () => {
               <td>{invoice.invoiceId}</td>
               <td>{invoice.employeeName}</td>
               <td>{invoice.purchaseDate.slice(0, 10)}</td> {/* Cập nhật đây */}
+              <td>{invoice.customerName}</td>
+              <td>{invoice.phone}</td>
+              <td>{invoice.address}</td>
               <td>{invoice.totalAmount}</td>
+              <td>{invoice.purchaseCount}</td>
               <td>
                 <button onClick={() => handleToggleDetails(invoice.invoiceId)}>
                   {selectedInvoice === invoice.invoiceId ? 'Ẩn chi tiết' : 'Xem chi tiết'}
@@ -183,6 +172,30 @@ const InvoiceTable = () => {
                 onChange={(e) => handleInputChange('purchaseDate', e.target.value)}
               />
             </label>
+            <label>
+              Tên Khách Hàng:
+              <input
+                type="text"
+                value={newInvoice.customerName}
+                onChange={(e) => handleInputChange('customerName', e.target.value)}
+              />
+            </label>
+            <label>
+              Phone:
+              <input
+                type="text"
+                value={newInvoice.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+              />
+            </label>
+            <label>
+              Địa chỉ:
+              <input
+                type="text"
+                value={newInvoice.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+              />
+            </label>
             <h3>Sản Phẩm</h3>
             {newInvoice.products.map((product, index) => (
               <div key={index}>
@@ -207,7 +220,7 @@ const InvoiceTable = () => {
             ))}
             <button onClick={addProductField}>Thêm Sản Phẩm</button>
             <br />
-            {errorMessage && <div className="error-message">{errorMessage}</div>}
+            
             <button onClick={handleSubmit}>Lưu</button>
             <button onClick={() => setShowModal(false)}>Hủy</button>
           </div>

@@ -7,6 +7,7 @@ const HouseholdInventory = () => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+
   // Lấy danh sách sản phẩm gia dụng khi component được tải
   useEffect(() => {
     axios.get('http://localhost:8080/api/households')
@@ -73,11 +74,14 @@ const HouseholdInventory = () => {
     setSearchTerm(e.target.value);
   };
 
+  
   // Lọc các sản phẩm gia dụng dựa trên từ khóa tìm kiếm
   const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) 
+    
   );
-
+  
+  
   return (
     <div>
       <h2>Gia dụng</h2>
@@ -89,6 +93,7 @@ const HouseholdInventory = () => {
         value={searchTerm}
         onChange={handleSearchChange}
       />
+      
 
       <table>
         <thead>

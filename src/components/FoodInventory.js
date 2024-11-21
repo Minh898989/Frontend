@@ -124,7 +124,7 @@ const FoodInventory = () => {
               <td>{item.name}</td>
               <td>${item.price}</td>
               <td>{item.quantity}</td>
-              <td>{item.importDate}</td>
+              <td>{item.importDate.slice(0, 10)}</td>
               <td style={{ color: isExpired(item.expiryDate) ? 'red' : 'black' }}>
                 {formatDate(item.expiryDate)} 
               </td>
